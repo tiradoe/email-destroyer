@@ -8,4 +8,5 @@ host, email, password, folder, port
 
 
 Example:
+
 imap.gmail.com, email@gmail.com, password1, [Gmail]/Trash, 993
