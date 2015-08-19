@@ -1,10 +1,16 @@
+#!/usr/bin/python
+
 """
-Empties trash for a provided list of email accounts
+Empties email folder for a provided list of email accounts
 Author: Edward Tirado Jr
 """
+
+from __future__ import print_function
+from email.parser import HeaderParser
 import imaplib
 import csv
-from email.parser import HeaderParser
+import argparse
+import sys
 
 
 class EmailAccount(object):
@@ -17,16 +23,30 @@ class EmailAccount(object):
         self.folder = folder
 
 
+def process_args():
+    """Process provided command line arguments"""
+    parser = argparse.ArgumentParser(description="Empty email folders using csv account list")
+    parser.add_argument('--file', '-f', help='File location')
+    args = parser.parse_args()
+
+    return args
+
+
 def get_accounts(file_name):
     """creates list of accounts from csv"""
     account_info = []
 
-    with open(file_name, 'rU') as csvfile:
-        accounts = csv.reader(csvfile, delimiter=',', quotechar='"')
-        for row in accounts:
-            account_info.append(', '.join(row))
+    try:
+        with open(file_name, 'rU') as csvfile:
+            accounts = csv.reader(csvfile, delimiter=',', quotechar='"')
+            for row in accounts:
+                account_info.append(', '.join(row))
 
-        return account_info
+    except IOError:
+        print("Could not read account list")
+        sys.exit()
+
+    return account_info
 
 
 def empty_folder(email_account):
@@ -43,7 +63,7 @@ def empty_folder(email_account):
         parser = HeaderParser()
         msg = parser.parsestr(header_data)
         imap_conn.store(num, '+FLAGS', '\\Deleted')
-        print 'Message %s\n%s\n' % (num, msg['subject'])
+        print('Message %s\n%s\n' % (num, msg['subject']))
 
     imap_conn.expunge()
     imap_conn.close()
@@ -53,12 +73,14 @@ def empty_folder(email_account):
 def main():
     """Main.  Where the magic happens."""
 
-    all_accounts = get_accounts('accounts.csv')
+    args = process_args()
+    accounts_csv = args.file if args.file != None else 'accounts.csv'
+    all_accounts = get_accounts(accounts_csv)
 
     for account in all_accounts:
         account_info = account.split(',')
 
-        print "Deleting email from %s folder in %s account" % (account_info[3], account_info[1])
+        print("Deleting email from %s folder in %s account" % (account_info[3], account_info[1]))
 
         email_account = EmailAccount(account_info[0], # host
                                      account_info[1].strip(), # email
@@ -69,7 +91,8 @@ def main():
 
         empty_folder(email_account)
 
-    print "Hasta la vista, email."
+    print("Hasta la vista, email.")
+
 
 if  __name__ == '__main__':
     main()
