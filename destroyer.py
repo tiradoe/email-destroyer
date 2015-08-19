@@ -27,9 +27,30 @@ def process_args():
     """Process provided command line arguments"""
     parser = argparse.ArgumentParser(description="Empty email folders using csv account list")
     parser.add_argument('--file', '-f', help='File location')
+    parser.add_argument('--list', '-l', help="List available folders and exit. Takes in file location.")
     args = parser.parse_args()
 
     return args
+
+
+def list_folders(accounts):
+    """Show available folders for provided accounts"""
+    for email_account in accounts:
+        account_info = email_account.split(',')
+
+        email_account = EmailAccount(account_info[0], # host
+                                     account_info[1].strip(), # email
+                                     account_info[2].strip(), # password
+                                     account_info[3].strip(), # folder
+                                     account_info[4], # port
+                                    )
+
+
+        imap_conn = imaplib.IMAP4_SSL(email_account.host, int(email_account.port))
+        imap_conn.login(email_account.email, email_account.password)
+
+        print(imap_conn.list())
+    sys.exit()
 
 
 def get_accounts(file_name):
@@ -76,6 +97,9 @@ def main():
     args = process_args()
     accounts_csv = args.file if args.file != None else 'accounts.csv'
     all_accounts = get_accounts(accounts_csv)
+
+    if args.list != None:
+        list_folders(all_accounts)
 
     for account in all_accounts:
         account_info = account.split(',')
