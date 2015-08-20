@@ -1,5 +1,4 @@
 # Email Destroyer
-Blow those emails away, one account at a time.
 
 The script checks for a file named 'accounts.csv' (or a file that is provided using the -f flag) and deletes emails from the specified folders.
 Each row of the CSV should have the following info (in this order):
