@@ -1,5 +1,6 @@
 import poplib
 from email import parser
+from email.parser import HeaderParser
 
 def connect_pop(email_account):
     pop_conn = poplib.POP3(email_account.host)
@@ -17,9 +18,15 @@ def delete_pop(email_account):
         msg_list = pop_list[1]
 
         for msg_spec in msg_list:
-            msg_num = int(msg_spec.split(' ')[0])
-            print("Deleting message %d\n" % msg_num )
-            pop_conn.dele(msg_num)
+            try:
+                msg_num = int(msg_spec.split(' ')[0])
+                print("Deleting message %d\n" % msg_num )
+                pop_conn.dele(msg_num)
+
+            except Exception, e:
+                print(e)
+                continue
+
 
     else:
         print("Could not list messages: status", pop_list[0])
