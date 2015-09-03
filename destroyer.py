@@ -6,7 +6,6 @@ Author: Edward Tirado Jr
 """
 
 from __future__ import print_function
-from email.parser import HeaderParser
 from socket import error
 import csv
 import argparse
@@ -49,7 +48,7 @@ def list_folders(accounts):
                                     )
 
 
-        if 'imap' in email_account.connection:
+        if 'imap' in email_account.connection.lower():
             imap_conn = imap_mod.connect_imap(email_account)
             print('\nFolders for %s:\n' % email_account.email)
             print(imap_conn.list())
@@ -82,7 +81,7 @@ def get_accounts(file_name):
 
 def empty_folder(email_account):
     """Empties trash folder for provided account"""
-    if 'imap' in email_account.connection:
+    if 'imap' in email_account.connection.lower():
         imap_mod.delete_imap(email_account)
     else:
         pop_mod.delete_pop(email_account)

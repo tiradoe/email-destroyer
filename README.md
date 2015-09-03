@@ -3,12 +3,12 @@
 The script checks for a file named 'accounts.csv' (or a file that is provided using the -f flag) and deletes emails from the specified folders.
 Each row of the CSV should have the following info (in this order):
 
-host, email, password, folder, port
+host, email, password, folder, port, connection type
 
 
 Example:
 
-imap.gmail.com, email@gmail.com, password1, [Gmail]/Trash, 993
+imap.gmail.com, email@gmail.com, password1, [Gmail]/Trash, 993, imap
 
 
 ## Flags

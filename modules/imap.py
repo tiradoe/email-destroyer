@@ -1,4 +1,5 @@
 import imaplib
+from email.parser import HeaderParser
 
 def connect_imap(email_account):
     imap_conn = imaplib.IMAP4_SSL(email_account.host, int(email_account.port))
@@ -25,9 +26,6 @@ def delete_imap(email_account):
         except imap_conn.abort, e:
             print('abort')
             continue
-
-        except error, e:
-            print(e)
 
         except Exception, e:
             print(e)
