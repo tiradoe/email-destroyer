@@ -6,21 +6,22 @@ Author: Edward Tirado Jr
 """
 
 from __future__ import print_function
-from email.parser import HeaderParser
-import imaplib
+from socket import error
 import csv
 import argparse
 import sys
-
+import modules.imap as imap_mod
+import modules.pop as pop_mod
 
 class EmailAccount(object):
     """An email account"""
-    def __init__(self, host, email, password, folder, port=993):
+    def __init__(self, host="", email="", password="", folder="", port=993, connection='imap'):
         self.host = host
         self.port = port
         self.email = email
         self.password = password
         self.folder = folder
+        self.connection = connection
 
 
 def process_args():
@@ -43,13 +44,21 @@ def list_folders(accounts):
                                      account_info[2].strip(), # password
                                      account_info[3].strip(), # folder
                                      account_info[4], # port
+                                     account_info[5], #connection
                                     )
 
 
-        imap_conn = imaplib.IMAP4_SSL(email_account.host, int(email_account.port))
-        imap_conn.login(email_account.email, email_account.password)
+        if 'imap' in email_account.connection.lower():
+            imap_conn = imap_mod.connect_imap(email_account)
+            print('\nFolders for %s:\n' % email_account.email)
+            print(imap_conn.list())
 
-        print(imap_conn.list())
+        else:
+            print('\nFolders for %s:' % email_account.email)
+            print('Cannot list folders for accounts using POP3')
+
+
+
     sys.exit()
 
 
@@ -72,23 +81,11 @@ def get_accounts(file_name):
 
 def empty_folder(email_account):
     """Empties trash folder for provided account"""
-    imap_conn = imaplib.IMAP4_SSL(email_account.host, int(email_account.port))
-    imap_conn.login(email_account.email, email_account.password)
-    imap_conn.select(email_account.folder)
 
-    typ, data = imap_conn.search(None, 'ALL')
-
-    for num in data[0].split():
-        typ, data = imap_conn.fetch(num, '(BODY.PEEK[HEADER.FIELDS (From Subject)] RFC822.SIZE)')
-        header_data = data[0][1]
-        parser = HeaderParser()
-        msg = parser.parsestr(header_data)
-        imap_conn.store(num, '+FLAGS', '\\Deleted')
-        print('Message %s\n%s\n' % (num, msg['subject']))
-
-    imap_conn.expunge()
-    imap_conn.close()
-    imap_conn.logout()
+    if 'imap' in email_account.connection.lower():
+        imap_mod.delete_imap(email_account)
+    else:
+        pop_mod.delete_pop(email_account)
 
 
 def main():
@@ -111,6 +108,7 @@ def main():
                                      account_info[2].strip(), # password
                                      account_info[3].strip(), # folder
                                      account_info[4], # port
+                                     account_info[5], #connection
                                     )
 
         empty_folder(email_account)
