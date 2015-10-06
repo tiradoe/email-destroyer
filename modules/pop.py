@@ -23,7 +23,7 @@ def delete_pop(email_account):
                 print("Deleting message %d\n" % msg_num )
                 pop_conn.dele(msg_num)
 
-            except Exception, e:
+            except Exception as e:
                 print(e)
                 continue
 
