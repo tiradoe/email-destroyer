@@ -58,3 +58,6 @@ target/
 
 accounts.csv
 .DS_Store
+bin/
+include/
+pip-selfcheck.json
