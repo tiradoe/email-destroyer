@@ -26,7 +26,7 @@ def delete_imap(email_account):
 
     typ, data = imap_conn.search(None, 'ALL')
 
-    print('Clearing out emails marked for deletion...')
+    print('Removing emails marked for deletion...')
     imap_conn.expunge()
 
 
@@ -34,6 +34,10 @@ def delete_imap(email_account):
 
     for num in data[0].split():
         try:
+            if int(num) % 500 == 0:
+                print('\n****Removing emails marked for deletion****\n')
+                imap_conn.expunge()
+
             typ, data = imap_conn.fetch(num, '(BODY.PEEK[HEADER.FIELDS (From Subject)] RFC822.SIZE)')
             raw_header = data[0][1]
             encoding = chardet.detect(raw_header)
@@ -57,6 +61,7 @@ def delete_imap(email_account):
             print(e)
             time.sleep(5)
             imap_conn.logout()
+
             delete_imap(email_account)
             continue
 
