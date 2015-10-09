@@ -101,8 +101,6 @@ def main():
     for account in all_accounts:
         account_info = account.split(',')
 
-        print("Deleting email from %s folder in %s account" % (account_info[3], account_info[1]))
-
         email_account = EmailAccount(account_info[0], # host
                                      account_info[1].strip(), # email
                                      account_info[2].strip(), # password

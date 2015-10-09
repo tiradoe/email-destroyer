@@ -4,9 +4,10 @@ import time
 import re
 from email.parser import HeaderParser
 
-imaplib._MAXLINE = 200000
+imaplib._MAXLINE = 3000000
 
 def connect_imap(email_account):
+    print('Connecting to %s' % email_account.email)
     imap_conn = imaplib.IMAP4_SSL(email_account.host, int(email_account.port))
     imap_conn.login(email_account.email, email_account.password)
 
@@ -14,13 +15,22 @@ def connect_imap(email_account):
 
 
 def delete_imap(email_account):
-    imap_conn = connect_imap(email_account)
+    try:
+        imap_conn = connect_imap(email_account)
+    except:
+        print('Login Failed.  Trying again.')
+        time.sleep(3)
+        delete_imap(email_account)
+
     imap_conn.select(email_account.folder)
 
     typ, data = imap_conn.search(None, 'ALL')
 
     print('Clearing out emails marked for deletion...')
     imap_conn.expunge()
+
+
+    print('Deleting email from %s\n' % email_account.email)
 
     for num in data[0].split():
         try:
@@ -38,14 +48,15 @@ def delete_imap(email_account):
         except imap_conn.abort as e:
             print(e)
             time.sleep(5)
-            imap_conn.close()
+            imap_conn.logout()
+
             delete_imap(email_account)
             continue
 
         except Exception as e:
             print(e)
             time.sleep(5)
-            imap_conn.close()
+            imap_conn.logout()
             delete_imap(email_account)
             continue
 
