@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!bin/python3.3
 
 """
 Empties email folder for a provided list of email accounts
@@ -10,8 +10,11 @@ from socket import error
 import csv
 import argparse
 import sys
+import datetime
 import modules.imap as imap_mod
 import modules.pop as pop_mod
+
+MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
 
 class EmailAccount(object):
     """An email account"""
@@ -29,6 +32,7 @@ def process_args():
     parser = argparse.ArgumentParser(description="Empty email folders using csv account list")
     parser.add_argument('--file', '-f', help='File location')
     parser.add_argument('--list', '-l', help="List available folders and exit. Takes in file location.")
+    parser.add_argument('--count', '-c', help="Get count of emails in provided accounts.  Takes in a file location.")
     args = parser.parse_args()
 
     return args
@@ -79,11 +83,36 @@ def get_accounts(file_name):
     return account_info
 
 
+def get_date_for_processing(current_date):
+    """Takes in a date and returns a date that is one month earlier."""
+    split_date = current_date.split('-')
+    day,month,year= split_date[0],split_date[1],split_date[2]
+
+    if MONTHS.index(month) == 0:
+        month = 'Dec'
+        year = int(year) - 1
+    else:
+        month = MONTHS[MONTHS.index(month) -1 ]
+
+    date = '-'.join([day,month,year])
+
+    return date
+
+
 def empty_folder(email_account):
     """Empties trash folder for provided account"""
 
+    current_date = datetime.datetime.now().strftime("%d-%b-%Y")
+    date = get_date_for_processing(current_date)
+    print(date)
+
     if 'imap' in email_account.connection.lower():
-        imap_mod.delete_imap(email_account)
+        email_count = imap_mod.get_inbox_count(email_account)
+
+        while (email_count > 0):
+            imap_mod.delete_imap(email_account, date)
+            date = get_date_for_processing(date)
+            email_count = imap_mod.get_inbox_count(email_account)
     else:
         pop_mod.delete_pop(email_account)
 
@@ -95,8 +124,10 @@ def main():
     accounts_csv = args.file if args.file != None else 'accounts.csv'
     all_accounts = get_accounts(accounts_csv)
 
+
     if args.list != None:
         list_folders(all_accounts)
+
 
     for account in all_accounts:
         account_info = account.split(',')
@@ -109,7 +140,10 @@ def main():
                                      account_info[5], #connection
                                     )
 
-        empty_folder(email_account)
+        if args.count != None:
+            email_count = imap_mod.get_inbox_count(email_account)
+        else:
+            empty_folder(email_account)
 
     print("Hasta la vista, email.")
 
