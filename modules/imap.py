@@ -20,8 +20,8 @@ def get_inbox_count(email_account):
     print('Getting message count...')
 
     imap_conn = connect_imap(email_account)
-    count = imap_conn.select()[1][0]
-    imap_conn.close()
+    count = imap_conn.select(email_account.folder)[1][0]
+    imap_conn.logout()
 
     print('\nCurrent message count for %s is %d\n' % (email_account.email, int(count)))
 
