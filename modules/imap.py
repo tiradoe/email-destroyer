@@ -41,7 +41,8 @@ def delete_imap(email_account, date):
     imap_conn.select(email_account.folder)
 
     #Get emails from provided date
-    typ, data = imap_conn.search(None, 'SINCE %s' % date)
+    #typ, data = imap_conn.search(None, 'SINCE %s' % date)
+    typ, data = imap_conn.search(None, 'ALL')
 
     print('Removing emails marked for deletion...')
     imap_conn.expunge()

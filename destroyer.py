@@ -1,4 +1,4 @@
-#!bin/python3.3
+#!bin/python
 
 """
 Empties email folder for a provided list of email accounts
@@ -121,7 +121,13 @@ def main():
     """Main.  Where the magic happens."""
 
     args = process_args()
-    accounts_csv = args.file if args.file != None else 'accounts.csv'
+    arg_list = [args.file, args.count, args.list]
+    accounts_csv = 'accounts.csv'
+
+    for arg in arg_list:
+        if arg != None:
+            accounts_csv = arg
+
     all_accounts = get_accounts(accounts_csv)
 
 
