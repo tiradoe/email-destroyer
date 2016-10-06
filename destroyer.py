@@ -33,6 +33,7 @@ def process_args():
     parser.add_argument('--file', '-f', help='File location')
     parser.add_argument('--list', '-l', help="List available folders and exit. Takes in file location.")
     parser.add_argument('--count', '-c', help="Get count of emails in provided accounts.  Takes in a file location.")
+    parser.add_argument('--before', '-b', help="Limit deleted messages to those before the provided date")
     args = parser.parse_args()
 
     return args
@@ -99,7 +100,7 @@ def get_date_for_processing(current_date):
     return date
 
 
-def empty_folder(email_account):
+def empty_folder(email_account, imap_search):
     """Empties trash folder for provided account"""
 
     current_date = datetime.datetime.now().strftime("%d-%b-%Y")
@@ -110,7 +111,7 @@ def empty_folder(email_account):
         email_count = imap_mod.get_inbox_count(email_account)
 
         while (email_count > 0):
-            imap_mod.delete_imap(email_account, date)
+            imap_mod.delete_imap(email_account, date, imap_search)
             date = get_date_for_processing(date)
             email_count = imap_mod.get_inbox_count(email_account)
     else:
@@ -134,6 +135,11 @@ def main():
     if args.list != None:
         list_folders(all_accounts)
 
+    if args.before != None:
+        imap_search = 'SENTBEFORE "%s"' % str(args.before)
+    else:
+        imap_search = 'ALL'
+
 
     for account in all_accounts:
         account_info = account.split(',')
@@ -149,7 +155,7 @@ def main():
         if args.count != None:
             email_count = imap_mod.get_inbox_count(email_account)
         else:
-            empty_folder(email_account)
+            empty_folder(email_account, imap_search)
 
     print("Hasta la vista, email.")
 

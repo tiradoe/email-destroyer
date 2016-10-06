@@ -2,6 +2,7 @@ import imaplib
 import chardet
 import time
 import re
+import sys
 from email.parser import HeaderParser
 
 imaplib._MAXLINE = 3000000
@@ -28,7 +29,7 @@ def get_inbox_count(email_account):
     return int(count)
 
 
-def delete_imap(email_account, date):
+def delete_imap(email_account, date, imap_search):
     """Delete emails from provided account"""
     try:
         print('Connecting to %s' % email_account.email)
@@ -41,14 +42,16 @@ def delete_imap(email_account, date):
     imap_conn.select(email_account.folder)
 
     #Get emails from provided date
-    #typ, data = imap_conn.search(None, 'SINCE %s' % date)
-    typ, data = imap_conn.search(None, 'ALL')
+    imap_search = '(%s)' % imap_search
+    print("Search criteria: %s" % imap_search)
+
+    typ, data = imap_conn.search(None, imap_search)
 
     print('Removing emails marked for deletion...')
     imap_conn.expunge()
 
 
-    print('Deleting email from %s\n' % email_account.email)
+    print('Deleting email from %s.  Folder: %s\n' % (email_account.email, email_account.folder))
 
     for num in data[0].split():
         try:
@@ -58,14 +61,20 @@ def delete_imap(email_account, date):
 
             typ, data = imap_conn.fetch(num, '(BODY.PEEK[HEADER.FIELDS (From Subject)] RFC822.SIZE)')
             raw_header = data[0][1]
-            encoding = chardet.detect(raw_header)
-            header_data = raw_header.decode(encoding['encoding'])
+            reload(sys)
+            sys.setdefaultencoding('utf-8')
+            #encoding = chardet.detect(raw_header)
+            #header_data = raw_header.decode(encoding['encoding'])
+            try:
+                header_data = raw_header.encode('utf-8')
 
-            parser = HeaderParser()
-            msg = parser.parsestr(header_data)
+                parser = HeaderParser()
+                msg = parser.parsestr(header_data)
 
-            imap_conn.store(num, '+FLAGS', '\\Deleted')
-            print('Message %s\n%s\n' % (int(num), msg['subject']))
+                imap_conn.store(num, '+FLAGS', '\\Deleted')
+                print('Message %s\n%s\n' % (int(num), msg['subject'].encode('utf-8')))
+            except:
+                pass
 
         except imap_conn.abort as e:
             print(e)
