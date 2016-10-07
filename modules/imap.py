@@ -18,7 +18,7 @@ def connect_imap(email_account):
 
 def get_inbox_count(email_account):
     """Returns current inbox message count"""
-    print('Getting message count...')
+    print('Getting message count for %s...' % email_account.email)
 
     imap_conn = connect_imap(email_account)
     count = imap_conn.select(email_account.folder)[1][0]
@@ -37,13 +37,12 @@ def delete_imap(email_account, date, imap_search):
     except:
         print('Login Failed.  Trying again.')
         time.sleep(3)
-        delete_imap(email_account,date)
+        delete_imap(email_account,date,imap_search)
 
     imap_conn.select(email_account.folder)
 
     #Get emails from provided date
     imap_search = '(%s)' % imap_search
-    print("Search criteria: %s" % imap_search)
 
     typ, data = imap_conn.search(None, imap_search)
 
@@ -56,7 +55,7 @@ def delete_imap(email_account, date, imap_search):
     for num in data[0].split():
         try:
             if int(num) % 500 == 0:
-                print('\n****Removing emails marked for deletion****\n')
+                print('\n****Removing emails marked for deletion from %s****\n' % email_account.email)
                 imap_conn.expunge()
 
             typ, data = imap_conn.fetch(num, '(BODY.PEEK[HEADER.FIELDS (From Subject)] RFC822.SIZE)')
@@ -72,7 +71,7 @@ def delete_imap(email_account, date, imap_search):
                 msg = parser.parsestr(header_data)
 
                 imap_conn.store(num, '+FLAGS', '\\Deleted')
-                print('Message %s\n%s\n' % (int(num), msg['subject'].encode('utf-8')))
+                #print('Message %s\n%s\n' % (int(num), msg['subject'].encode('utf-8')))
             except:
                 pass
 
@@ -81,7 +80,7 @@ def delete_imap(email_account, date, imap_search):
             time.sleep(5)
             #imap_conn.close()
 
-            delete_imap(email_account,date)
+            delete_imap(email_account,date,imap_search)
             continue
 
         except Exception as e:
@@ -89,7 +88,7 @@ def delete_imap(email_account, date, imap_search):
             time.sleep(5)
             #imap_conn.close()
 
-            delete_imap(email_account,date)
+            delete_imap(email_account,date,imap_search)
             continue
 
     imap_conn.expunge()

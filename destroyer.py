@@ -11,6 +11,7 @@ import csv
 import argparse
 import sys
 import datetime
+import threading
 import modules.imap as imap_mod
 import modules.pop as pop_mod
 
@@ -141,6 +142,9 @@ def main():
         imap_search = 'ALL'
 
 
+    print("Search criteria: %s" % imap_search)
+
+
     for account in all_accounts:
         account_info = account.split(',')
 
@@ -155,13 +159,16 @@ def main():
         if args.count != None:
             email_count = imap_mod.get_inbox_count(email_account)
         else:
-            empty_folder(email_account, imap_search)
+            new_thread = threading.Thread(target=empty_folder, args=(email_account, imap_search))
+            new_thread.start()
 
-    print("Hasta la vista, email.")
+
+    print(threading.activeCount())
 
 
 if  __name__ == '__main__':
     try:
         main()
     except KeyboardInterrupt as e:
+        cleanup_stop_thread()
         print('\nBye!')
