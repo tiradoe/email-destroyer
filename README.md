@@ -11,9 +11,12 @@ Example:
 imap.gmail.com, email@gmail.com, password1, [Gmail]/Trash, 993, imap
 
 
+
 ## Flags
 --help, -h Show help info
 
 --list, -l [filename] List available folders and exit. Takes in file location.
 
 --file, -f [filename] Path to CSV file with accounts list.  If not provided, will default to 'accounts'csv.
+
+--before, -b [date] delete emails sent before provided date. Format: 01-JAN-2016
