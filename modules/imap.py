@@ -91,6 +91,9 @@ def delete_imap(email_account, date, imap_search):
             delete_imap(email_account,date,imap_search)
             continue
 
-    imap_conn.expunge()
-    imap_conn.close()
-    imap_conn.logout()
+    try:
+        imap_conn.expunge()
+        imap_conn.close()
+        imap_conn.logout()
+    except Exception as e:
+        print(e)
