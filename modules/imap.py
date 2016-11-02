@@ -3,9 +3,13 @@ import chardet
 import time
 import re
 import sys
+import logging
 from email.parser import HeaderParser
 
 imaplib._MAXLINE = 3000000
+
+logging.basicConfig(filename='deleter.log',format='%(asctime)s:%(levelname)s:%(message)s',level=logging.DEBUG)
+
 
 def connect_imap(email_account):
     """Log into email account"""
@@ -18,13 +22,13 @@ def connect_imap(email_account):
 
 def get_inbox_count(email_account):
     """Returns current inbox message count"""
-    print('Getting message count for %s...' % email_account.email)
+    logging.info('Getting message count for %s...' % email_account.email)
 
     imap_conn = connect_imap(email_account)
     count = imap_conn.select(email_account.folder)[1][0]
     imap_conn.logout()
 
-    print('\nCurrent message count for %s is %d\n' % (email_account.email, int(count)))
+    logging.info('\nCurrent message count for %s is %d\n' % (email_account.email, int(count)))
 
     return int(count)
 
@@ -32,30 +36,35 @@ def get_inbox_count(email_account):
 def delete_imap(email_account, date, imap_search):
     """Delete emails from provided account"""
     try:
-        print('Connecting to %s' % email_account.email)
+        set_logging(email_account)
+        logging.info('Connecting to %s' % email_account.email)
         imap_conn = connect_imap(email_account)
     except:
-        print('Login Failed.  Trying again.')
+        logging.warning('Login Failed.  Trying again.')
         time.sleep(3)
         delete_imap(email_account,date,imap_search)
 
-    imap_conn.select(email_account.folder)
 
-    #Get emails from provided date
-    imap_search = '(%s)' % imap_search
+    try:
+        imap_conn.select(email_account.folder)
 
-    typ, data = imap_conn.search(None, imap_search)
+        #Get emails from provided date
+        imap_search = '(%s)' % imap_search
+        typ, data = imap_conn.search(None, imap_search)
 
-    print('Removing emails marked for deletion...')
-    imap_conn.expunge()
+        logging.info('Removing emails marked for deletion...')
+        imap_conn.expunge()
+    except:
+        logging.warning('Failed to select messages.')
 
 
-    print('Deleting email from %s.  Folder: %s\n' % (email_account.email, email_account.folder))
+
+    logging.info('Deleting email from %s.  Folder: %s\n' % (email_account.email, email_account.folder))
 
     for num in data[0].split():
         try:
             if int(num) % 500 == 0:
-                print('\n****Removing emails marked for deletion from %s****\n' % email_account.email)
+                logging.info('\n****Removing emails marked for deletion from %s****\n' % email_account.email)
                 imap_conn.expunge()
 
             typ, data = imap_conn.fetch(num, '(BODY.PEEK[HEADER.FIELDS (From Subject)] RFC822.SIZE)')
@@ -76,7 +85,7 @@ def delete_imap(email_account, date, imap_search):
                 pass
 
         except imap_conn.abort as e:
-            print(e)
+            logging.debug(e)
             time.sleep(5)
             #imap_conn.close()
 
@@ -84,7 +93,7 @@ def delete_imap(email_account, date, imap_search):
             continue
 
         except Exception as e:
-            print(e)
+            logging.debug(e)
             time.sleep(5)
             #imap_conn.close()
 
@@ -96,4 +105,4 @@ def delete_imap(email_account, date, imap_search):
         imap_conn.close()
         imap_conn.logout()
     except Exception as e:
-        print(e)
+        (e)
