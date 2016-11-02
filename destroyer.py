@@ -12,10 +12,13 @@ import argparse
 import sys
 import datetime
 import threading
+import logging
 import modules.imap as imap_mod
 import modules.pop as pop_mod
 
 MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
+
+logging.basicConfig(filename='logs/deleter.log',format='%(asctime)s:%(levelname)s:%(message)s',level=logging.DEBUG)
 
 class EmailAccount(object):
     """An email account"""
@@ -56,12 +59,12 @@ def list_folders(accounts):
 
         if 'imap' in email_account.connection.lower():
             imap_conn = imap_mod.connect_imap(email_account)
-            print('\nFolders for %s:\n' % email_account.email)
-            print(imap_conn.list())
+            logging.info('\nFolders for %s:\n' % email_account.email)
+            logging.info(imap_conn.list())
 
         else:
-            print('\nFolders for %s:' % email_account.email)
-            print('Cannot list folders for accounts using POP3')
+            logging.info('\nFolders for %s:' % email_account.email)
+            logging.warning('Cannot list folders for accounts using POP3')
 
 
 
@@ -79,7 +82,7 @@ def get_accounts(file_name):
                 account_info.append(', '.join(row))
 
     except IOError:
-        print("Could not read account list")
+        logging.debug("Could not read account list")
         sys.exit()
 
     return account_info
@@ -106,7 +109,7 @@ def empty_folder(email_account, imap_search):
 
     current_date = datetime.datetime.now().strftime("%d-%b-%Y")
     date = get_date_for_processing(current_date)
-    print(date)
+    logging.info(date)
 
     if 'imap' in email_account.connection.lower():
         email_count = imap_mod.get_inbox_count(email_account)
@@ -142,7 +145,7 @@ def main():
         imap_search = 'ALL'
 
 
-    print("Search criteria: %s" % imap_search)
+    logging.info("Search criteria: %s" % imap_search)
 
 
     for account in all_accounts:
@@ -161,9 +164,6 @@ def main():
         else:
             new_thread = threading.Thread(target=empty_folder, args=(email_account, imap_search))
             new_thread.start()
-
-
-    print(threading.activeCount())
 
 
 if  __name__ == '__main__':
