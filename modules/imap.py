@@ -8,7 +8,7 @@ from email.parser import HeaderParser
 
 imaplib._MAXLINE = 3000000
 
-logging.basicConfig(filename='deleter.log',format='%(asctime)s:%(levelname)s:%(message)s',level=logging.DEBUG)
+logging.basicConfig(filename='logs/deleter.log',format='%(asctime)s:%(levelname)s:%(message)s',level=logging.DEBUG)
 
 
 def connect_imap(email_account):
@@ -36,11 +36,11 @@ def get_inbox_count(email_account):
 def delete_imap(email_account, date, imap_search):
     """Delete emails from provided account"""
     try:
-        set_logging(email_account)
         logging.info('Connecting to %s' % email_account.email)
         imap_conn = connect_imap(email_account)
-    except:
+    except Exception as e:
         logging.warning('Login Failed.  Trying again.')
+        logging.debug(e)
         time.sleep(3)
         delete_imap(email_account,date,imap_search)
 
@@ -54,8 +54,9 @@ def delete_imap(email_account, date, imap_search):
 
         logging.info('Removing emails marked for deletion...')
         imap_conn.expunge()
-    except:
+    except exception as e:
         logging.warning('Failed to select messages.')
+        logging.debug(e)
 
 
 
