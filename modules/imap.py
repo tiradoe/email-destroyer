@@ -8,7 +8,7 @@ from email.parser import HeaderParser
 
 imaplib._MAXLINE = 3000000
 
-logging.basicConfig(filename='logs/deleter.log',format='%(asctime)s:%(levelname)s:%(message)s',level=logging.DEBUG)
+logging.basicConfig(filename='logs/deleter.log',format='%(asctime)s:%(levelname)s:%(message)s',datefmt='%Y-%m-%d %H:%M',level=logging.DEBUG)
 
 
 def connect_imap(email_account):
@@ -28,7 +28,7 @@ def get_inbox_count(email_account):
     count = imap_conn.select(email_account.folder)[1][0]
     imap_conn.logout()
 
-    logging.info('\nCurrent message count for %s is %d\n' % (email_account.email, int(count)))
+    logging.info('Current message count for %s is %d' % (email_account.email, int(count)))
 
     return int(count)
 
@@ -39,7 +39,7 @@ def delete_imap(email_account, date, imap_search):
         logging.info('Connecting to %s' % email_account.email)
         imap_conn = connect_imap(email_account)
     except Exception as e:
-        logging.warning('Login Failed.  Trying again.')
+        logging.warning('Login Failed for %s.  Trying again.' % email_account.email)
         logging.debug(e)
         time.sleep(3)
         delete_imap(email_account,date,imap_search)
@@ -52,20 +52,20 @@ def delete_imap(email_account, date, imap_search):
         imap_search = '(%s)' % imap_search
         typ, data = imap_conn.search(None, imap_search)
 
-        logging.info('Removing emails marked for deletion...')
+        logging.info('Removing emails marked for deletion from %s' % email_account.email)
         imap_conn.expunge()
     except exception as e:
-        logging.warning('Failed to select messages.')
+        logging.warning('Failed to select messages from %s' % email_account.email)
         logging.debug(e)
 
 
 
-    logging.info('Deleting email from %s.  Folder: %s\n' % (email_account.email, email_account.folder))
+    logging.info('Deleting email from %s.  Folder: %s' % (email_account.email, email_account.folder))
 
     for num in data[0].split():
         try:
             if int(num) % 500 == 0:
-                logging.info('\n****Removing emails marked for deletion from %s****\n' % email_account.email)
+                logging.info('Removing emails marked for deletion from %s' % email_account.email)
                 imap_conn.expunge()
 
             typ, data = imap_conn.fetch(num, '(BODY.PEEK[HEADER.FIELDS (From Subject)] RFC822.SIZE)')

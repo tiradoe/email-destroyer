@@ -16,9 +16,9 @@ import logging
 import modules.imap as imap_mod
 import modules.pop as pop_mod
 
-MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
+MONTHS = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"]
 
-logging.basicConfig(filename='logs/deleter.log',format='%(asctime)s:%(levelname)s:%(message)s',level=logging.DEBUG)
+logging.basicConfig(filename='logs/deleter.log',format='%(asctime)s:%(levelname)s:%(message)s',datefmt='%Y-%m-%d %H:%M',level=logging.DEBUG)
 
 class EmailAccount(object):
     """An email account"""
@@ -91,7 +91,7 @@ def get_accounts(file_name):
 def get_date_for_processing(current_date):
     """Takes in a date and returns a date that is one month earlier."""
     split_date = current_date.split('-')
-    day,month,year= split_date[0],split_date[1],split_date[2]
+    day,month,year= split_date[0],split_date[1].upper(),split_date[2]
 
     if MONTHS.index(month) == 0:
         month = 'Dec'
@@ -104,12 +104,17 @@ def get_date_for_processing(current_date):
     return date
 
 
-def empty_folder(email_account, imap_search):
+def empty_folder(email_account, imap_search, before_date):
     """Empties trash folder for provided account"""
 
-    current_date = datetime.datetime.now().strftime("%d-%b-%Y")
-    date = get_date_for_processing(current_date)
-    logging.info(date)
+
+    if before_date == None:
+        delete_date = datetime.datetime.now().strftime("%d-%b-%Y")
+    else:
+        delete_date = before_date
+
+    date = get_date_for_processing(delete_date)
+    logging.info('Deleting emails sent before %s' % date)
 
     if 'imap' in email_account.connection.lower():
         email_count = imap_mod.get_inbox_count(email_account)
@@ -162,7 +167,7 @@ def main():
         if args.count != None:
             email_count = imap_mod.get_inbox_count(email_account)
         else:
-            new_thread = threading.Thread(target=empty_folder, args=(email_account, imap_search))
+            new_thread = threading.Thread(target=empty_folder, args=(email_account, imap_search, args.before))
             new_thread.start()
 
 
