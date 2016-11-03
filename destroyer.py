@@ -99,7 +99,7 @@ def get_date_for_processing(current_date):
     else:
         month = MONTHS[MONTHS.index(month) -1 ]
 
-    date = '-'.join([day,month,year])
+    date = '-'.join([str(day),str(month),str(year)])
 
     return date
 
