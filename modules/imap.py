@@ -31,7 +31,7 @@ def get_inbox_count(email_account):
 
         logging.info('Current message count for %s is %d' % (email_account.email, int(count)))
     except Exception as e:
-        logging.warning('Failed to get message count')
+        logging.warning('Failed to get message count for %s' % email_account.email)
         logging.debug(e)
 
     return int(count)
