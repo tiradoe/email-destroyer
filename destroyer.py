@@ -109,19 +109,18 @@ def empty_folder(email_account, imap_search, before_date):
 
 
     if before_date == None:
-        delete_date = datetime.datetime.now().strftime("%d-%b-%Y")
+        date = datetime.datetime.now().strftime("%d-%b-%Y")
+        delete_date = get_date_for_processing(date)
     else:
         delete_date = before_date
 
-    date = get_date_for_processing(delete_date)
-    logging.info('Deleting emails sent before %s' % date)
+    logging.info('Deleting emails sent before %s' % delete_date)
 
     if 'imap' in email_account.connection.lower():
         email_count = imap_mod.get_inbox_count(email_account)
 
         while (email_count > 0):
-            imap_mod.delete_imap(email_account, date, imap_search)
-            date = get_date_for_processing(date)
+            imap_mod.delete_imap(email_account, delete_date, imap_search)
             email_count = imap_mod.get_inbox_count(email_account)
     else:
         pop_mod.delete_pop(email_account)
