@@ -1,4 +1,4 @@
-#!bin/python
+#!/bin/python
 
 """
 Empties email folder for a provided list of email accounts
