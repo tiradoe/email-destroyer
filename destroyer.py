@@ -117,12 +117,14 @@ def empty_folder(email_account, imap_search, before_date):
     logging.info('Deleting emails sent before %s' % delete_date)
 
     if 'imap' in email_account.connection.lower():
+        logging.info('Deleting using Imap module')
         email_count = imap_mod.get_inbox_count(email_account)
 
         while (email_count > 0):
             imap_mod.delete_imap(email_account, delete_date, imap_search)
             email_count = imap_mod.get_inbox_count(email_account)
     else:
+        logging.info('Deleting using POP module')
         pop_mod.delete_pop(email_account)
 
 
